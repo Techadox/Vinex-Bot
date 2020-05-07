@@ -1,0 +1,34 @@
+{
+  "weapons": [
+    {
+      "name": "Sword",
+      "damage": 25,
+      "durability": 700,
+      "cost": 300
+    },
+    {
+      "name": "Axe",
+      "damage": 50,
+      "durability": 800,
+      "cost": 750
+    },
+    {
+      "name": "Cloud's Bane",
+      "damage": 1000,
+      "durability": 1000,
+      "cost": 1000000
+    },
+    {
+      "name": "Boomerang",
+      "damage": 30,
+      "durability": 800,
+      "cost": 800
+    },
+    {
+      "name": "Booboo",
+      "damage": 0,
+      "durability": 1000,
+      "cost": 1000
+    }
+  ]
+}

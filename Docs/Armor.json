@@ -1,0 +1,58 @@
+{
+  "armors": [
+    {
+      "name": "Wooden Helmet",
+      "defense": 20,
+      "durability": 30,
+      "cost": 100
+    },
+    {
+      "name": "Wooden Breastplate",
+      "defense": 30,
+      "durability": 30,
+      "cost": 150
+    },
+    {
+      "name": "Wooden Boots",
+      "defense": 10,
+      "durability": 30,
+      "cost": 50
+    },
+    {
+      "name": "Stone Helmet",
+      "defense": 40,
+      "durability": 60,
+      "cost": 200
+    },
+    {
+      "name": "Stone Breastplate",
+      "defense": 60,
+      "durability": 60,
+      "cost": 300
+    },
+    {
+      "name": "Stone Boots",
+      "defense": 10,
+      "durability": 60,
+      "cost": 100
+    },
+    {
+      "name": "Iron Helmet",
+      "defense": 80,
+      "durability": 120,
+      "cost": 300
+    },
+    {
+      "name": "Iron Breastplate",
+      "defense": 120,
+      "durability": 120,
+      "cost": 450
+    },
+    {
+      "name": "Iron Boots",
+      "defense": 40,
+      "durability": 120,
+      "cost": 150
+    }
+  ]
+}
