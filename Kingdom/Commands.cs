@@ -270,7 +270,7 @@ namespace Vinex_Bot.Kingdom
                 Color = DiscordColor.Aquamarine,
                 Description = "Please make this so that a user says v.buy weapons or v.buy items and this embed just shows the categories " +
                 "that the user can choose. Add choices for filtering (v.buy cost>500) oh also," +
-                " try adding a description to each item in the future. That'll make for some good lore!"
+                " try adding a description to each item in the future. That'll make for some good lore! "
             };
             await ctx.Channel.SendMessageAsync(embed: mainEmbed);
 
