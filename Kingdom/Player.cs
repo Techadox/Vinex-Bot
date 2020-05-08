@@ -36,7 +36,7 @@ namespace Vinex_Bot.Kingdom
         public int Stamina { get => stamina; private set => stamina = value; }
         public int Heal { get => heal; private set => heal = value; }
         public double Money { get => money; private set => money = value; }
-        public Weapon DefaultWeapon { get => weapon; private set => weapon = value; }
+        public Weapon MainWeapon { get => weapon; private set => weapon = value; }
         public List<Weapon> weaponInv { get; }
         public List<Armor> armorInv { get; }
 
@@ -47,7 +47,7 @@ namespace Vinex_Bot.Kingdom
             weaponInv = new List<Weapon>();
             armorInv = new List<Armor>();
 
-            DefaultWeapon = new Weapon();
+            MainWeapon = new Weapon();
 
             Money = 500;
             level = 1;
@@ -124,7 +124,8 @@ namespace Vinex_Bot.Kingdom
 
             embed = new DiscordEmbedBuilder
             {
-                Color = DiscordColor.Aquamarine
+                Color = DiscordColor.Aquamarine,
+                Description = $"Successfully given {_user.Username} {_money}𝕍"
             };
             this.Money -= _money;
             foreach (var player in Commands.players)
@@ -162,6 +163,42 @@ namespace Vinex_Bot.Kingdom
             this.Money -= armor.Cost;
         }
 
+        public DiscordEmbedBuilder ShowWeapons()
+        {
+            //embed to store both weapon and armor inventory items
+            var weaponEmbed = new DiscordEmbedBuilder
+            {
+                Title = "Weapons",
+                Color = DiscordColor.Aquamarine
+            };
+
+            if (weaponInv.Count == 0)
+            {
+                weaponEmbed.AddField("Empty", "Once you obtain weapons, it will show up here!");
+            }
+            else
+            {
+                weaponEmbed.AddField("Main Weapon",
+                         "Name: " + MainWeapon.Name + "\n"
+                         + "Damage: " + MainWeapon.Damage.ToString() + "\n"
+                         + "Durability: " + MainWeapon.Durability.ToString() + "\n"
+                         + "Damage: " + MainWeapon.Damage.ToString() + "\n", false);
+
+                foreach (var weapon in weaponInv)
+                {
+                    if (weapon == MainWeapon)
+                        continue;
+
+                    else
+                        weaponEmbed.AddField(weapon.Name,
+                        "Damage: " + weapon.Damage.ToString() + "\n"
+                        + "Durability: " + weapon.Durability.ToString() + "\n"
+                        + "Damage: " + weapon.Damage.ToString() + "\n", true);
+                }
+            }
+
+            return weaponEmbed;
+        }
         public List<Page> ShowInventory()
         {
             //embed to store both weapon and armor inventory items
@@ -198,12 +235,22 @@ namespace Vinex_Bot.Kingdom
             }
             else
             {
+                weaponEmbed.AddField("Main Weapon",
+                         "Name: " + MainWeapon.Name + "\n"
+                         + "Damage: " + MainWeapon.Damage.ToString() + "\n"
+                         + "Durability: " + MainWeapon.Durability.ToString() + "\n"
+                         + "Damage: " + MainWeapon.Damage.ToString() + "\n", false);
+
                 foreach (var weapon in weaponInv)
                 {
-                    weaponEmbed.AddField(weapon.Name,
-                    "Damage: " + weapon.Damage.ToString() + "\n"
-                     + "Durability: " + weapon.Durability.ToString() + "\n"
-                     + "Damage: " + weapon.Damage.ToString() + "\n", true);
+                    if (weapon == MainWeapon)
+                        continue;
+
+                    else
+                        weaponEmbed.AddField(weapon.Name,
+                        "Damage: " + weapon.Damage.ToString() + "\n"
+                        + "Durability: " + weapon.Durability.ToString() + "\n"
+                        + "Damage: " + weapon.Damage.ToString() + "\n", true);
                 }
             }
 
@@ -224,7 +271,21 @@ namespace Vinex_Bot.Kingdom
             {
                 if (weapon.Name.ToLower() == weaponName.ToLower())
                 {
-                    this.DefaultWeapon = weapon;
+                    this.MainWeapon = weapon;
+                    hasWeapon = true;
+                }
+            }
+            return hasWeapon;
+        }
+
+        public bool SetWeapon(Weapon _weapon)
+        {
+            bool hasWeapon = false;
+            foreach (var weapon in weaponInv)
+            {
+                if (weapon == _weapon)
+                {
+                    this.MainWeapon = weapon;
                     hasWeapon = true;
                 }
             }

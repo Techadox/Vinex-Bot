@@ -21,8 +21,7 @@ namespace Vinex_Bot.Kingdom
 {
     class Commands : BaseCommandModule
     {
-        public static List<Player> players = new List<Player>();
-        
+        public static List<Player> players = new List<Player>(); 
 
         #region Join Element
         [Command("joinelement")]
@@ -30,24 +29,16 @@ namespace Vinex_Bot.Kingdom
         [Aliases("joine", "joinclass", "joinc")]
         public async Task JoinClass(CommandContext ctx)
         {
-            if (ctx.User.Id == 208911047854260226)
-            {
-                Player player = new Player(ctx.User, Player.Element.Fire);
-                players.Add(player);
-                await ctx.Channel.SendMessageAsync("Welcome to the Fire Clan! Here are your stats");
-                await ctx.Channel.SendMessageAsync(embed: player.GetStats());
-            }
-            else
-            {
-                var interactivity = ctx.Client.GetInteractivity();
-                DiscordMessage ask;
-                bool hasAccount = false;
+            bool hasAccount = false;
+            
+            var interactivity = ctx.Client.GetInteractivity();
+            DiscordMessage ask;
 
-                //emojis for the user to choose from
-                var fire = DiscordEmoji.FromName(ctx.Client, ":fire:");
-                var water = DiscordEmoji.FromName(ctx.Client, ":ocean:");
-                var earth = DiscordEmoji.FromName(ctx.Client, ":earth_americas:");
-                var wind = DiscordEmoji.FromName(ctx.Client, ":wind_blowing_face:");
+            //emojis for the user to choose from
+            var fire = DiscordEmoji.FromName(ctx.Client, ":fire:");
+            var water = DiscordEmoji.FromName(ctx.Client, ":ocean:");
+            var earth = DiscordEmoji.FromName(ctx.Client, ":earth_americas:");
+            var wind = DiscordEmoji.FromName(ctx.Client, ":wind_blowing_face:");
 
             //checks if player already exists in the list 
             foreach (var player in players)
@@ -59,9 +50,37 @@ namespace Vinex_Bot.Kingdom
                     hasAccount = false;
             }
 
-                if (hasAccount)
-                    await ctx.Channel.SendMessageAsync("You already have an account. Do you wish to reset everything?" +
-                            "\n Please implement this soon");
+            if (hasAccount)
+            {
+                var thumbsUp = DiscordEmoji.FromName(ctx.Client, ":thumbsup:");
+                var thumbsDown = DiscordEmoji.FromName(ctx.Client, ":thumbsdown:");
+
+                var msg = await ctx.Channel.SendMessageAsync("You already have an account. Do you wish to reset everything?");
+                await msg.CreateReactionAsync(thumbsUp);
+                await msg.CreateReactionAsync(thumbsDown);
+                var emoji = interactivity.WaitForReactionAsync(x => x.User == ctx.User);
+
+                if (emoji.Result.Result.Emoji == thumbsUp)
+                    foreach (var player in players)
+                        if (player.User == ctx.User)
+                        {
+                            players.Remove(player);
+                            await ctx.Channel.SendMessageAsync("Your account was successfully reset.");
+                        }
+
+                        else
+                            await ctx.Channel.SendMessageAsync("Your account was not reset.");
+            }   
+            else
+            {
+                if (ctx.User.Id == 208911047854260226)
+                {
+                    Player player = new Player(ctx.User, Player.Element.Fire);
+                    players.Add(player);
+                    player.GiveMoney(9999999 - 500);
+                    await ctx.Channel.SendMessageAsync("Welcome to the Fire Clan! Here are your stats");
+                    await ctx.Channel.SendMessageAsync(embed: player.GetStats());
+                }
                 else
                 {
                     ask = await ctx.Channel.SendMessageAsync(embed: Vembed("What would you like to join? Fire, Water, Wind, Earth?"));
@@ -106,7 +125,7 @@ namespace Vinex_Bot.Kingdom
                         await ctx.Channel.SendMessageAsync("Wrong emoji... What the hell, dude?");
                     }
                     await ask.DeleteAsync();
-                }   
+                }
             }   
         }
         #endregion
@@ -149,9 +168,41 @@ namespace Vinex_Bot.Kingdom
                 }
             }
         }
+
+        [Command("money")]
+        [Description("Work in progress")]
+        [Aliases("showmoney", "cash")]
+        public async Task ShowMoney(CommandContext ctx)
+        {
+            foreach (var player in players)
+            {
+                if (player.User == ctx.User)
+                {
+                    await ctx.Channel.SendMessageAsync(embed: Vembed("Money:", player.Money + "𝕍"));
+                    break;
+                }
+            }
+        }
         #endregion
 
         #region Show Inventory
+
+        [Command("showweapons")]
+        [Description("Work in progress")]
+        [Aliases("showweapon", "weapons")]
+        public async Task ShowWeapons(CommandContext ctx)
+        {
+            foreach (var player in players)
+            {
+                if (player.User == ctx.User)
+                {
+                    var embed = player.ShowWeapons();
+
+                    await ctx.Channel.SendMessageAsync(embed: embed);
+                    break;
+                }
+            }
+        }
 
         [Command("showinventory")]
         [Description("Work in progress")]
@@ -191,7 +242,6 @@ namespace Vinex_Bot.Kingdom
                     showError = false;
                     var embed = player.GiveMoneyToPlayer(_user, _money);
                     await ctx.Channel.SendMessageAsync(embed: embed);
-                    await ctx.Channel.SendMessageAsync("Successfully given " + _user.Username + " " + _money + "𝕍");
                 }
             }
             if (showError)
@@ -219,7 +269,7 @@ namespace Vinex_Bot.Kingdom
                 Title = "Shop",
                 Color = DiscordColor.Aquamarine,
                 Description = "Please make this so that a user says v.buy weapons or v.buy items and this embed just shows the categories " +
-                "that the user can choose. Also, learn how to make the embed paginated. Add choices for filtering (v.buy cost>500) oh also," +
+                "that the user can choose. Add choices for filtering (v.buy cost>500) oh also," +
                 " try adding a description to each item in the future. That'll make for some good lore!"
             };
             await ctx.Channel.SendMessageAsync(embed: mainEmbed);
@@ -269,7 +319,6 @@ namespace Vinex_Bot.Kingdom
             string name = string.Empty;
             int cost = 0;
 
-
             string w = File.ReadAllText(@"Z:\Self Study\Programming\C#\Discord Bots\Vinex Bot\Vinex Bot\Docs\Weapon.json");
             var weapons = JsonConvert.DeserializeObject<WeaponCollection>(w);
 
@@ -291,16 +340,18 @@ namespace Vinex_Bot.Kingdom
                             if (player.Money >= weapon.Cost)
                             {
                                 player.BuyItem(weapon);
+
+                                if (player.weaponInv.Count == 1)
+                                    player.SetWeapon(weapon);
+
                                 await ctx.Channel.SendMessageAsync("Successfully bought " + name + " for " + cost + "𝕍.");
+                                break;
                             }
                                 
                             else
                                 await ctx.Channel.SendMessageAsync($"Not enough money to buy to buy {weapon.Name}.");
                         }
-
                     }
-                    
-                    break;
                 }
             }
 
@@ -328,13 +379,91 @@ namespace Vinex_Bot.Kingdom
         }
         #endregion Shop
 
+        #region Set Main Weapon
+
+        [Command("setweapon")]
+        [Aliases("setmainweapon")]
+        [Description("Chooses the main weapon from the list of weapons from a player's inventory")]
+        public async Task SetMainWeapon(CommandContext ctx)
+        {
+            Weapon mainWeapon = new Weapon();
+            var interactivity = ctx.Client.GetInteractivity();
+            var embed = new DiscordEmbedBuilder
+            {
+                Color = DiscordColor.Aquamarine
+            };
+
+            foreach (var player in players)
+            {
+                foreach (var weapon in player.weaponInv)
+                {
+                    embed.AddField(weapon.Name,
+                        "Damage: " + weapon.Damage + "\n" +
+                    "Durability: " + weapon.Durability);
+                    mainWeapon = weapon;
+                }
+                await ctx.Channel.SendMessageAsync("Type the name of the weapon you would like to choose");
+                await ctx.Channel.SendMessageAsync(embed: embed);
+
+                var weaponName = interactivity.WaitForMessageAsync(x => x.Author == ctx.User);
+
+                bool wasSuccess = player.SetWeapon(weaponName.Result.Result.Content);
+                if (wasSuccess)
+                    await ctx.Channel.SendMessageAsync($"Successfully set Main Weapon to {mainWeapon.Name}");
+                else
+                    await ctx.Channel.SendMessageAsync($"You don't have {weaponName} in your inventory.");
+                break;
+            }
+        }
+
+        [Command("setweapon")]
+        public async Task SetMainWeapon(CommandContext ctx, [RemainingText] string weaponName)
+        {
+            bool wasSuccess = false;
+
+            var embed = new DiscordEmbedBuilder
+            {
+                Color = DiscordColor.Aquamarine
+            };
+
+            foreach (var player in players)
+            {
+                foreach (var weapon in player.weaponInv)
+                {
+                    if (weapon.Name.ToLower() == weaponName.ToLower())
+                    {
+                        wasSuccess = player.SetWeapon(weapon);
+
+                        await ctx.Channel.SendMessageAsync($"Successfully set main weapon to {weapon.Name}");
+                        break;
+                    }
+                }
+                if (wasSuccess)
+                    break;
+            }
+        }
+        #endregion
+
         #region Enable Coin Drop - Plz change to item drop too
 
         bool wasDropped = false;
         [Command("coindrop")]
         public async Task CoinDrop(CommandContext ctx)
         {
-            await ctx.Channel.SendMessageAsync("Please enter the maximum time in minutes\n Example: `v.coindrop 5`");
+            if (wasDropped)
+            {
+                if (ctx.Member.PermissionsIn(ctx.Channel) == DSharpPlus.Permissions.All)
+                {
+                    wasDropped = false;
+                    await ctx.Channel.SendMessageAsync("Coin drops disabled.");
+                }
+                else
+                    await ctx.Channel.SendMessageAsync("You do not have sufficient permissions to perform this command.");
+            }
+
+            else
+                await ctx.Channel.SendMessageAsync("Please enter the maximum time in minutes\n Example: `v.coindrop 5`");
+               
         }
 
         [Command("coindrop")]
@@ -540,42 +669,6 @@ namespace Vinex_Bot.Kingdom
 
         }
 
-        #endregion
-
-        #region Set Main Weapon
-
-        [Command("setweapon")]
-        [Aliases("setmainweapon")]
-        [Description("Chooses the main weapon from the list of weapons from a player's inventory")]
-        public async Task SetMainWeapon(CommandContext ctx)
-        {
-            var interactivity = ctx.Client.GetInteractivity();
-            var embed = new DiscordEmbedBuilder
-            {
-                Color = DiscordColor.Aquamarine
-            };
-
-            foreach (var player in players)
-            {
-                foreach (var weapon in player.weaponInv)
-                {
-                    embed.AddField(weapon.Name, 
-                        "Damage: " + weapon.Damage + "\n" +
-                    "Durability: " + weapon.Durability);
-                }
-                await ctx.Channel.SendMessageAsync("Type the name of the weapon you would like to choose");
-                await ctx.Channel.SendMessageAsync(embed: embed);
-
-                var weaponName = interactivity.WaitForMessageAsync(x => x.Author == ctx.User);
-
-                bool wasSuccess = player.SetWeapon(weaponName.Result.Result.Content);
-                if (wasSuccess)
-                    await ctx.Channel.SendMessageAsync($"Successfully set main weapon to {weaponName.Result.Result.Content}");
-                else
-                    await ctx.Channel.SendMessageAsync($"You don't have {weaponName} in your inventory.");
-                break;
-            }
-        }
         #endregion
     }
 }
